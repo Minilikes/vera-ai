@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vera AI - Data Ingestion</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#00696f",
+                        "primary-fixed": "#74f5ff",
+                        "secondary-fixed-dim": "#ffb1c3",
+                        "surface-container-low": "#151d1e",
+                        "on-secondary-container": "#590026",
+                        "on-secondary-fixed": "#3f0019",
+                        "inverse-surface": "#dce4e4",
+                        "surface-container-highest": "#2e3637",
+                        "tertiary-fixed": "#ffdbcc",
+                        "inverse-on-surface": "#2a3232",
+                        "outline-variant": "#3a494b",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#351000",
+                        "on-surface": "#dce4e4",
+                        "error": "#ffb4ab",
+                        "surface-container-lowest": "#080f10",
+                        "on-tertiary": "#561f00",
+                        "secondary-container": "#ff4b89",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#a24100",
+                        "on-surface-variant": "#b9cacb",
+                        "on-secondary": "#66002c",
+                        "on-primary-fixed": "#002022",
+                        "on-primary-container": "#006a71",
+                        "primary-container": "#00f2ff",
+                        "surface-tint": "#00dbe7",
+                        "surface-dim": "#0d1515",
+                        "surface": "#0d1515",
+                        "secondary-fixed": "#ffd9e0",
+                        "primary": "#e1fdff",
+                        "tertiary-fixed-dim": "#ffb693",
+                        "on-background": "#dce4e4",
+                        "surface-variant": "#2e3637",
+                        "primary-fixed-dim": "#00dbe7",
+                        "surface-container-high": "#232b2c",
+                        "on-primary-fixed-variant": "#004f54",
+                        "tertiary-container": "#ffd1bd",
+                        "on-secondary-fixed-variant": "#8f0041",
+                        "surface-bright": "#333b3b",
+                        "outline": "#849495",
+                        "tertiary": "#fff5f2",
+                        "on-tertiary-fixed-variant": "#7a3000",
+                        "background": "#0d1515",
+                        "secondary": "#ffb1c3",
+                        "surface-container": "#192122",
+                        "on-primary": "#00363a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "xs": "4px",
+                        "xxl": "64px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "container-max": "1440px",
+                        "xl": "40px"
+                    },
+                    "fontFamily": {
+                        "label-lg": ["Space Grotesk"],
+                        "label-sm": ["Space Grotesk"],
+                        "display-lg": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "display-sm": ["Space Grotesk"],
+                        "body-lg": ["Space Grotesk"],
+                        "body-md": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-lg": ["14px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "label-sm": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "500" }],
+                        "display-lg": ["64px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.3", "letterSpacing": "0em", "fontWeight": "600" }],
+                        "display-sm": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .star-field {
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+                radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+            background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
+            background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+        }
+        .glass-card {
+            background: rgba(13, 11, 31, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .neon-border-primary {
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4), inset 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+        .neon-border-secondary {
+            box-shadow: 0 0 15px rgba(255, 75, 137, 0.4), inset 0 0 10px rgba(255, 75, 137, 0.2);
+        }
+        .glow-text-primary {
+            text-shadow: 0 0 10px rgba(0, 242, 255, 0.7);
+        }
+        .glow-text-secondary {
+            text-shadow: 0 0 10px rgba(255, 75, 137, 0.7);
+        }
+        .holo-zone {
+            background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05) 0%, transparent 70%);
+        }
+        /* Custom Toggle Switch Styles */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #00f2ff;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: rgba(0, 242, 255, 0.2);
+            border-color: #00f2ff;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen relative overflow-x-hidden font-body-md star-field">
+<!-- TopNavBar (JSON Injected) -->
+<nav class="fixed top-0 w-full z-50 border-b border-cyan-500/20 bg-slate-950/60 backdrop-blur-2xl border-b border-cyan-500/30 backdrop-saturate-150 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex justify-between items-center px-8 py-4 w-full">
+<div class="flex items-center gap-lg">
+<span class="font-['Space_Grotesk'] text-2xl font-bold tracking-tighter text-cyan-400 drop-shadow-[0_0_10px_rgba(0,242,255,0.7)] text-cyan-400 dark:text-cyan-300">Vera AI</span>
+<div class="hidden md:flex gap-lg ml-xl">
+<a class="font-['Space_Grotesk'] tracking-widest uppercase text-sm text-cyan-400 border-b-2 border-cyan-400 pb-1 font-bold" href="#">Analyze</a>
+<a class="font-['Space_Grotesk'] tracking-widest uppercase text-sm text-slate-400 hover:text-cyan-200 transition-all duration-300 hover:bg-cyan-500/10 hover:shadow-[0_0_15px_rgba(0,242,255,0.4)] scale-105 active:scale-95 transition-transform duration-200 rounded px-2 py-1" href="#">Intelligence</a>
+<a class="font-['Space_Grotesk'] tracking-widest uppercase text-sm text-slate-400 hover:text-cyan-200 transition-all duration-300 hover:bg-cyan-500/10 hover:shadow-[0_0_15px_rgba(0,242,255,0.4)] scale-105 active:scale-95 transition-transform duration-200 rounded px-2 py-1" href="#">Nodes</a>
+<a class="font-['Space_Grotesk'] tracking-widest uppercase text-sm text-slate-400 hover:text-cyan-200 transition-all duration-300 hover:bg-cyan-500/10 hover:shadow-[0_0_15px_rgba(0,242,255,0.4)] scale-105 active:scale-95 transition-transform duration-200 rounded px-2 py-1" href="#">Fleet</a>
+</div>
+</div>
+<button class="hidden md:block border border-cyan-500/50 text-cyan-400 px-4 py-2 rounded-DEFAULT font-label-sm uppercase tracking-widest hover:bg-cyan-500/20 transition-colors shadow-[0_0_10px_rgba(0,242,255,0.3)]">
+            Launch HUD
+        </button>
+</nav>
+<!-- Main Workspace -->
+<main class="pt-[100px] pb-xl px-gutter max-w-container-max mx-auto min-h-screen flex flex-col md:flex-row gap-gutter">
+<!-- Left Sidebar: Recent Scans -->
+<aside class="w-full md:w-1/4 flex flex-col gap-md">
+<div class="glass-card border border-primary-container/20 rounded-xl p-md flex flex-col gap-md">
+<h2 class="font-label-lg text-primary-fixed uppercase tracking-widest border-b border-primary-container/20 pb-sm mb-sm flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">history</span>
+                    Recent Scans
+                </h2>
+<!-- Scan Item 1 -->
+<div class="group border border-outline-variant/30 rounded-lg p-sm hover:border-primary-container/50 hover:bg-primary-container/5 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-sm text-on-surface">DRONE_TELEMETRY_09.dat</span>
+<span class="material-symbols-outlined text-[14px] text-primary-container group-hover:glow-text-primary">check_circle</span>
+</div>
+<div class="flex justify-between items-center text-[10px] text-outline">
+<span>24 MB</span>
+<span>10 mins ago</span>
+</div>
+</div>
+<!-- Scan Item 2 -->
+<div class="group border border-outline-variant/30 rounded-lg p-sm hover:border-primary-container/50 hover:bg-primary-container/5 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-sm text-on-surface">ECHO_SECTOR_MAP.bin</span>
+<span class="material-symbols-outlined text-[14px] text-primary-container group-hover:glow-text-primary">check_circle</span>
+</div>
+<div class="flex justify-between items-center text-[10px] text-outline">
+<span>1.2 GB</span>
+<span>1 hour ago</span>
+</div>
+</div>
+<!-- Scan Item 3 (Error) -->
+<div class="group border border-error-container/30 rounded-lg p-sm hover:border-error/50 hover:bg-error/5 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-xs">
+<span class="font-label-sm text-error">CORRUPT_LOG_77.txt</span>
+<span class="material-symbols-outlined text-[14px] text-error drop-shadow-[0_0_5px_rgba(255,180,171,0.7)]">warning</span>
+</div>
+<div class="flex justify-between items-center text-[10px] text-error/70">
+<span>Fragmented</span>
+<span>3 hours ago</span>
+</div>
+</div>
+</div>
+<!-- System Status Widget -->
+<div id="status-badge" class="glass-card border border-primary-container/30 rounded-xl p-md flex items-center gap-md neon-border-primary">
+<div id="status-dot" class="w-3 h-3 rounded-full bg-primary-container shadow-[0_0_10px_#00f2ff] animate-pulse"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-primary-container tracking-widest uppercase">System Status</span>
+<span id="status-text" class="font-body-sm text-on-surface">CONNECTING TO MODEL...</span>
+</div>
+</div>
+</aside>
+<!-- Center: Holographic Upload Zone -->
+<section class="w-full md:w-1/2 flex flex-col gap-md">
+<div id="upload-section" class="glass-card border border-primary-container/20 rounded-xl p-lg flex-grow flex flex-col items-center justify-center relative overflow-hidden group">
+<!-- Decorative Grid Background inside upload zone -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(#00f2ff 1px, transparent 1px), linear-gradient(90deg, #00f2ff 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div id="drop-zone" class="w-full h-full border-2 border-dashed border-primary-container/40 rounded-xl holo-zone flex flex-col items-center justify-center p-xl text-center group-hover:border-primary-container/80 transition-colors duration-500 relative z-10 cursor-pointer">
+<img id="preview-img" style="display: none; max-height: 280px; object-fit: contain; border-radius: 10px; z-index: 20;" alt="Uploaded preview" />
+<div id="drop-hint" class="flex flex-col items-center justify-center">
+<div class="w-24 h-24 rounded-full bg-primary-container/10 flex items-center justify-center mb-lg group-hover:scale-110 transition-transform duration-500 group-hover:bg-primary-container/20 neon-border-primary">
+<span class="material-symbols-outlined text-6xl text-primary-container glow-text-primary" style="font-variation-settings: 'FILL' 0;">upload_file</span>
+</div>
+<h3 class="font-headline-md text-primary-fixed mb-sm">Initialize Data Transfer</h3>
+<p class="font-body-md text-on-surface-variant max-w-[80%] mb-lg">Drag and drop structural schematics, neural logs, or raw telemetry data into the void.</p>
+</div>
+<input type="file" id="file-input" accept=".jpg,.jpeg,.png,.webp" class="hidden" />
+<button id="analyze-btn" disabled class="bg-gradient-to-r from-inverse-primary to-primary-container text-on-primary-container px-lg py-sm rounded-DEFAULT font-label-lg uppercase tracking-widest border border-white/20 hover:shadow-[0_0_20px_rgba(0,242,255,0.6)] transition-shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mt-4 z-30 relative">
+    <div id="btn-spinner" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></div>
+    <span id="btn-icon" class="material-symbols-outlined hidden">analytics</span>
+    <span id="btn-label">Browse / Analyze</span>
+</button>
+</div>
+<div id="error-msg" class="text-error text-sm mt-4 hidden w-full text-center p-2 border border-error/30 rounded bg-error/10 relative z-20"></div>
+</div>
+
+<!-- Result Card -->
+<div id="result-card" class="glass-card border border-primary-container/20 rounded-xl p-lg flex flex-col gap-4 hidden transition-all duration-300">
+    <div class="flex items-center gap-4 border-b border-white/10 pb-4">
+        <div id="verdict-icon" class="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center text-2xl font-bold"></div>
+        <div>
+            <div id="verdict-label" class="text-2xl font-bold font-display-sm tracking-widest uppercase"></div>
+            <div id="verdict-sub" class="text-sm text-outline"></div>
+        </div>
+    </div>
+    <div class="flex justify-between items-center text-sm font-bold uppercase tracking-widest mt-2">
+        <span>Confidence</span>
+        <span id="conf-value" class="text-primary-container"></span>
+    </div>
+    <div class="h-2 bg-surface-variant rounded-full overflow-hidden">
+        <div id="bar-fill" class="h-full w-0 transition-all duration-1000 bg-gradient-to-r from-primary-container to-secondary-container"></div>
+    </div>
+    <div class="flex justify-between items-center text-xs text-outline mt-2 pt-2 border-t border-white/10">
+        <span>Raw model score</span>
+        <strong id="raw-score" class="text-on-surface"></strong>
+    </div>
+    <button id="reset-btn" class="mt-4 w-full border border-outline-variant rounded-lg py-2 text-sm uppercase tracking-widest hover:border-white/50 transition-colors">
+        Analyze another image
+    </button>
+</div>
+
+</section>
+<!-- Right Sidebar: Analysis Protocols -->
+<aside class="w-full md:w-1/4 flex flex-col gap-md">
+<div class="glass-card border border-secondary-container/20 rounded-xl p-md flex flex-col gap-lg h-full relative overflow-hidden">
+<!-- Decorative Top Glow -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-secondary-container to-transparent opacity-50 shadow-[0_0_15px_rgba(255,75,137,0.8)]"></div>
+<h2 class="font-label-lg text-secondary-fixed uppercase tracking-widest border-b border-secondary-container/20 pb-sm flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">settings_suggest</span>
+                    Analysis Protocols
+                </h2>
+<div class="flex flex-col gap-md">
+<!-- Toggle 1 -->
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface">Deep Scan</span>
+<span class="font-label-sm text-[10px] text-outline">Recursive byte analysis</span>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all right-0 border-primary-container" id="toggle1" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full bg-primary-container/20 cursor-pointer border border-primary-container shadow-[0_0_10px_rgba(0,242,255,0.5)]" for="toggle1"></label>
+</div>
+</div>
+<!-- Toggle 2 -->
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface">Anomaly Detection</span>
+<span class="font-label-sm text-[10px] text-outline">Pattern recognition AI</span>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-surface-variant border-4 border-outline appearance-none cursor-pointer z-10 transition-all left-0" id="toggle2" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full bg-surface-container cursor-pointer border border-outline-variant" for="toggle2"></label>
+</div>
+</div>
+<!-- Toggle 3 -->
+<div class="flex justify-between items-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface">Auto-Categorize</span>
+<span class="font-label-sm text-[10px] text-outline">Meta-tag injection</span>
+</div>
+<div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all right-0 border-primary-container" id="toggle3" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-5 rounded-full bg-primary-container/20 cursor-pointer border border-primary-container shadow-[0_0_10px_rgba(0,242,255,0.5)]" for="toggle3"></label>
+</div>
+</div>
+</div>
+<div class="mt-auto">
+<button class="w-full glass-card border border-secondary-container rounded-DEFAULT py-sm font-label-lg text-secondary uppercase tracking-widest neon-border-secondary hover:bg-secondary-container/10 transition-colors flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                        Force Override
+                    </button>
+</div>
+</div>
+</aside>
+</main>
+<!-- Footer (JSON Injected) -->
+<footer class="mt-auto w-full border-t border-pink-500/20 py-8 bg-slate-950/80 backdrop-blur-lg border-t border-slate-800 flex flex-col md:flex-row justify-between items-center px-12 w-full gap-4">
+<span class="font-['Space_Grotesk'] text-xs font-medium text-slate-500 text-[10px] tracking-[0.2em] uppercase">© 2142 VERA NEURAL SYSTEMS</span>
+<div class="flex gap-lg">
+<a class="font-['Space_Grotesk'] text-[10px] tracking-[0.2em] uppercase text-slate-500 hover:text-pink-300 transition-colors duration-500 opacity-80 hover:opacity-100" href="#">Neural Terms</a>
+<a class="font-['Space_Grotesk'] text-[10px] tracking-[0.2em] uppercase text-slate-500 hover:text-pink-300 transition-colors duration-500 opacity-80 hover:opacity-100" href="#">Security Nodes</a>
+</div>
+</footer>
+
+<script>
+    // ── Elements ──────────────────────────────────────────
+    const dropZone    = document.getElementById('drop-zone');
+    const fileInput   = document.getElementById('file-input');
+    const previewImg  = document.getElementById('preview-img');
+    const dropHint    = document.getElementById('drop-hint');
+    const analyzeBtn  = document.getElementById('analyze-btn');
+    const btnSpinner  = document.getElementById('btn-spinner');
+    const btnIcon     = document.getElementById('btn-icon');
+    const btnLabel    = document.getElementById('btn-label');
+    const errorMsg    = document.getElementById('error-msg');
+    const resultCard  = document.getElementById('result-card');
+    const statusBadge = document.getElementById('status-badge');
+    const statusText  = document.getElementById('status-text');
+    const statusDot   = document.getElementById('status-dot');
+    const resetBtn    = document.getElementById('reset-btn');
+    const uploadSection = document.getElementById('upload-section');
+
+    let selectedFile = null;
+    let modelReady   = false;
+
+    // ── Model Status Poll ─────────────────────────────────
+    async function checkStatus() {
+      try {
+        const res  = await fetch('/api/status');
+        const data = await res.json();
+
+        if (data.ready) {
+          const label = data.model === 'ready_no_weights'
+            ? 'DEMO MODE (NO WEIGHTS)'
+            : 'SYSTEM READY';
+          setStatus('ready', label);
+          modelReady = true;
+          updateAnalyzeBtn();
+        } else if (data.model === 'loading') {
+          setStatus('loading', 'INITIALIZING...');
+          setTimeout(checkStatus, 2000); // retry
+        } else {
+          setStatus('error', `ERROR: ${data.error || data.model}`);
+        }
+      } catch {
+        setStatus('error', 'SERVER OFFLINE');
+        setTimeout(checkStatus, 3000); // retry
+      }
+    }
+
+    function setStatus(type, text) {
+      statusText.textContent = text;
+      statusBadge.className = 'glass-card border rounded-xl p-md flex items-center gap-md';
+      statusText.className = 'font-body-sm';
+      if (type === 'ready') {
+          statusBadge.classList.add('border-primary-container/30', 'neon-border-primary');
+          statusDot.className = 'w-3 h-3 rounded-full bg-primary-container shadow-[0_0_10px_#00f2ff] animate-pulse';
+          statusText.classList.add('text-primary-container');
+      } else if (type === 'loading') {
+          statusBadge.classList.add('border-yellow-500/30', 'shadow-[0_0_15px_rgba(234,179,8,0.4)]');
+          statusDot.className = 'w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_10px_#eab308] animate-pulse';
+          statusText.classList.add('text-yellow-500');
+      } else {
+          statusBadge.classList.add('border-error/30', 'shadow-[0_0_15px_rgba(255,180,171,0.4)]');
+          statusDot.className = 'w-3 h-3 rounded-full bg-error shadow-[0_0_10px_#ffb4ab]';
+          statusText.classList.add('text-error');
+      }
+    }
+
+    checkStatus();
+
+    // ── Drag & Drop ───────────────────────────────────────
+    // Prevent triggering file input when clicking analyze button
+    dropZone.addEventListener('click', (e) => {
+        if (!e.target.closest('#analyze-btn')) {
+            fileInput.click();
+        }
+    });
+    
+    dropZone.addEventListener('dragover',   e  => { 
+        e.preventDefault(); 
+        dropZone.classList.add('bg-primary-container/10'); 
+    });
+    dropZone.addEventListener('dragleave',  ()  => {
+        dropZone.classList.remove('bg-primary-container/10');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('bg-primary-container/10');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    function handleFile(file) {
+      selectedFile = file;
+      hideError();
+      hideResult();
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+        dropHint.style.display = 'none';
+        dropZone.classList.add('border-solid');
+        dropZone.classList.remove('border-dashed');
+      };
+      reader.readAsDataURL(file);
+      updateAnalyzeBtn();
+    }
+
+    function updateAnalyzeBtn() {
+      analyzeBtn.disabled = !(selectedFile && modelReady);
+      if(selectedFile && modelReady) {
+          btnLabel.textContent = "Analyze Data";
+          btnIcon.classList.remove('hidden');
+      } else {
+          btnLabel.textContent = "Browse / Analyze";
+          btnIcon.classList.add('hidden');
+      }
+    }
+
+    // ── Analyze ───────────────────────────────────────────
+    analyzeBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!selectedFile) return;
+
+      setLoading(true);
+      hideError();
+      hideResult();
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const res  = await fetch('/api/analyze', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Analysis failed.');
+        showResult(data);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ── UI Helpers ────────────────────────────────────────
+    function setLoading(on) {
+      analyzeBtn.disabled = on;
+      if (on) {
+          btnSpinner.classList.remove('hidden');
+          btnIcon.classList.add('hidden');
+      } else {
+          btnSpinner.classList.add('hidden');
+          btnIcon.classList.remove('hidden');
+      }
+      btnLabel.textContent = on ? 'Analyzing…' : 'Analyze Data';
+    }
+
+    function showResult(data) {
+      const isReal = data.verdict === 'REAL';
+
+      resultCard.classList.remove('hidden');
+      if (isReal) {
+          resultCard.classList.add('border-[#10d9a0]/50', 'bg-[#10d9a0]/5', 'shadow-[0_0_15px_rgba(16,217,160,0.2)]');
+          resultCard.classList.remove('border-[#f55f74]/50', 'bg-[#f55f74]/5', 'shadow-[0_0_15px_rgba(245,95,116,0.2)]');
+          document.getElementById('verdict-icon').classList.add('text-[#10d9a0]', 'bg-[#10d9a0]/10');
+          document.getElementById('verdict-icon').classList.remove('text-[#f55f74]', 'bg-[#f55f74]/10');
+          document.getElementById('verdict-label').classList.add('text-[#10d9a0]');
+          document.getElementById('verdict-label').classList.remove('text-[#f55f74]');
+          document.getElementById('bar-fill').className = 'h-full w-0 transition-all duration-1000 bg-gradient-to-r from-[#10d9a0] to-[#34d399]';
+      } else {
+          resultCard.classList.add('border-[#f55f74]/50', 'bg-[#f55f74]/5', 'shadow-[0_0_15px_rgba(245,95,116,0.2)]');
+          resultCard.classList.remove('border-[#10d9a0]/50', 'bg-[#10d9a0]/5', 'shadow-[0_0_15px_rgba(16,217,160,0.2)]');
+          document.getElementById('verdict-icon').classList.add('text-[#f55f74]', 'bg-[#f55f74]/10');
+          document.getElementById('verdict-icon').classList.remove('text-[#10d9a0]', 'bg-[#10d9a0]/10');
+          document.getElementById('verdict-label').classList.add('text-[#f55f74]');
+          document.getElementById('verdict-label').classList.remove('text-[#10d9a0]');
+          document.getElementById('bar-fill').className = 'h-full w-0 transition-all duration-1000 bg-gradient-to-r from-[#f55f74] to-[#fb7185]';
+      }
+
+      document.getElementById('verdict-icon').textContent = isReal ? '✓' : '✕';
+      document.getElementById('verdict-label').textContent = isReal ? 'AUTHENTIC' : 'DEEPFAKE';
+      document.getElementById('verdict-sub').textContent  = isReal
+        ? 'This image appears to be genuine media.'
+        : 'This image shows signs of AI manipulation.';
+
+      // confidence is a numeric value (e.g. 87.34)
+      const conf = typeof data.confidence === 'number' ? data.confidence : parseFloat(data.confidence);
+      document.getElementById('conf-value').textContent  = `${conf.toFixed(2)}%`;
+      document.getElementById('raw-score').textContent   =
+        data.raw_score !== undefined ? data.raw_score : '—';
+
+      // Animate bar after a tick
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById('bar-fill').style.width = `${conf}%`;
+        });
+      });
+      
+      // Hide upload zone
+      uploadSection.classList.add('hidden');
+    }
+
+    function hideResult() {
+      resultCard.classList.add('hidden');
+      document.getElementById('bar-fill').style.width = '0%';
+      uploadSection.classList.remove('hidden');
+    }
+
+    function showError(msg) {
+      errorMsg.textContent    = `⚠ ${msg}`;
+      errorMsg.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorMsg.classList.add('hidden');
+    }
+
+    // ── Reset ─────────────────────────────────────────────
+    resetBtn.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+      dropHint.style.display = 'flex';
+      dropZone.classList.remove('border-solid');
+      dropZone.classList.add('border-dashed');
+      hideResult();
+      hideError();
+      updateAnalyzeBtn();
+    });
+</script>
+</body></html>
